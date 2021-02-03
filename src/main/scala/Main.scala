@@ -22,7 +22,7 @@ object Main {
 
       val req2 = HttpRequest.newBuilder().uri(
         URI.create(s"http://${apiurl}/2018-06-01/runtime/invocation/$reqId/response")
-      ).method("POST", BodyPublishers.ofString(eventData)).build()
+      ).method("POST", BodyPublishers.ofString(eventData.reverse)).build()
 
       client.send(req2, BodyHandlers.discarding())
     }
