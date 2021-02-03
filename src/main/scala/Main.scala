@@ -4,12 +4,15 @@ import java.net.URI
 import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
 import java.net.http.{HttpClient, HttpRequest}
+import scala.util.Random
 
 object Main {
 
   def main(args: Array[String]): Unit = {
     val apiurl = System.getenv("AWS_LAMBDA_RUNTIME_API")
     val client = HttpClient.newHttpClient()
+
+    val vmID = Random.nextLong().toString
 
     while (true) {
       val req = HttpRequest.newBuilder().uri(
@@ -22,7 +25,7 @@ object Main {
 
       val req2 = HttpRequest.newBuilder().uri(
         URI.create(s"http://${apiurl}/2018-06-01/runtime/invocation/$reqId/response")
-      ).method("POST", BodyPublishers.ofString(eventData.reverse)).build()
+      ).method("POST", BodyPublishers.ofString(vmID + eventData.reverse)).build()
 
       client.send(req2, BodyHandlers.discarding())
     }
