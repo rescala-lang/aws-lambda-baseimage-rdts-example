@@ -8,6 +8,7 @@ lazy val alam = project.in(file("."))
     organization := "de.rmgk",
     scalaVersion_213,
     strictCompile,
+    libraryDependencies += scribe.value,
     nativeImageVersion := "20.3.0",
     nativeImageOptions ++= Seq(
       "--initialize-at-build-time",
