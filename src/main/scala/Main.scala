@@ -14,6 +14,8 @@ object Main {
 
     val vmID = Random.nextLong().toString
 
+    scribe.info("test")
+
     while (true) {
       println("waiting for request")
       val req = HttpRequest.newBuilder().uri(

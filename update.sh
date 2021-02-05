@@ -1,6 +1,6 @@
 #!/usr/bin/sh
 
-sbt nativeImage
+# sbt nativeImage
 
 cp target/native-image/awslambda bootstrap
 zip awstest.zip bootstrap
