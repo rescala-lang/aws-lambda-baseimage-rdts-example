@@ -9,6 +9,9 @@ object Dependencies {
   object Versions {
     val akkaActors = "2.6.10"
     val akkaHttp = "10.2.2"
+    val awsLambdaCore = "1.2.1"
+    val awsLambdaEvents = "3.9.0"
+    val awsS3 = "2.17.24"
     val betterFiles = "3.9.1"
     val catsCore = "2.3.1"
     val circeCore = "0.13.0"
@@ -27,6 +30,7 @@ object Dependencies {
     val okHttp = "4.9.0"
     val pprint = "0.6.1"
     val reactiveStreams = "1.0.3"
+    val replication = "d88a5a61d95d7"
     val retypecheck = "0.8.0"
     val scala211 = "2.11.11"
     val scala212 = "2.12.4"
@@ -52,6 +56,9 @@ object Dependencies {
 
   import Dependencies.{Versions => V}
 
+  val awsLambdaCore   = Def.setting("com.amazonaws" % "aws-lambda-java-core" % V.awsLambdaCore)
+  val awsLambdaEvents = Def.setting("com.amazonaws" % "aws-lambda-java-events" % V.awsLambdaEvents)
+  val awsS3           = Def.setting("software.amazon.awssdk" % "s3" % V.awsS3)
   val betterFiles     = Def.setting("com.github.pathikrit" %% "better-files" % V.betterFiles)
   val catsCore        = Def.setting("org.typelevel" %%% "cats-core" % V.catsCore)
   val decline         = Def.setting("com.monovore" %%% "decline" % V.decline)
@@ -68,6 +75,7 @@ object Dependencies {
   val okHttp          = Def.setting("com.squareup.okhttp3" % "okhttp" % V.okHttp)
   val pprint          = Def.setting("com.lihaoyi" %%% "pprint" % V.pprint)
   val reactiveStreams = Def.setting("org.reactivestreams" % "reactive-streams" % V.reactiveStreams)
+  val replication     = Def.setting("com.github.rescala-lang.rescala" % "replication_sjs1_2.13" % V.replication)
   val retypecheck     = Def.setting("de.tuda.stg" %% "retypecheck" % V.retypecheck)
   val scalacheck      = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck % "test")
   val scalactic       = Def.setting("org.scalactic" %% "scalactic" % V.scalactic)

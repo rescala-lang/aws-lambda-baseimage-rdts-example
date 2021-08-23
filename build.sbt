@@ -8,7 +8,17 @@ lazy val alam = project.in(file("."))
     organization := "de.rmgk",
     scalaVersion_213,
     strictCompile,
-    libraryDependencies += scribe.value,
+    resolvers += "jitpack" at "https://jitpack.io",
+    resolvers += ("STG old bintray repo" at "http://www.st.informatik.tu-darmstadt.de/maven/").withAllowInsecureProtocol(
+      true
+    ),
+    libraryDependencies ++= Seq(
+      replication.value,
+      awsLambdaCore.value,
+      awsLambdaEvents.value,
+      awsS3.value,
+      scribe.value
+    ),
     nativeImageVersion := "20.3.0",
     nativeImageOptions ++= Seq(
       "--initialize-at-build-time",
