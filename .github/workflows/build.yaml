@@ -16,7 +16,7 @@ jobs:
         os: [ubuntu-latest]
         include:
           - os: ubuntu-latest
-            uploaded_filename: scitzen-x86_64-pc-linux
+            uploaded_filename: awslambda
             local_path: target/native-image/awslambda
     steps:
       - uses: actions/checkout@v2
