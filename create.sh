@@ -1,3 +1,5 @@
+#!/usr/bin/sh
+
 cp awslambda bootstrap
 zip awstest.zip bootstrap
 
