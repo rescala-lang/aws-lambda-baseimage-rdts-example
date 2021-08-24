@@ -20,6 +20,7 @@ import java.net.http.{HttpClient, HttpRequest}
 import scala.util.Random
 import scala.jdk.CollectionConverters._
 
+
 object Main {
 
   def main(args: Array[String]): Unit = {
@@ -30,19 +31,19 @@ object Main {
 
     scribe.info("test")
 
-    val bucketName: String = "de-tu-darmstadt-stg-crdt"
+    val bucketName = "de-tu-darmstadt-stg-crdt"
 
-    val deltaStateKey: String = "deltaState"
+    val deltaStateKey = "deltaState"
 
-    val httpClient: SdkHttpClient = ApacheHttpClient.builder().build()
+    val httpClient = ApacheHttpClient.builder().build()
 
-    val s3: S3Client = S3Client.builder().region(Region.EU_CENTRAL_1).httpClient(httpClient).build()
+    val s3 = S3Client.builder().region(Region.EU_CENTRAL_1).httpClient(httpClient).build()
 
     implicit val intCodec: JsonValueCodec[Int] = JsonCodecMaker.make
 
     implicit val InputCodec: JsonValueCodec[List[Int]] = JsonCodecMaker.make
 
-    val set: AWSet[Int, DietMapCContext] = {
+    val set = {
       val listResponse = s3.listObjectsV2(ListObjectsV2Request.builder().bucket(bucketName).build())
 
       listResponse.contents().asScala.toList.map { obj =>
