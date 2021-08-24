@@ -15,6 +15,7 @@ object Dependencies {
     val betterFiles = "3.9.1"
     val catsCore = "2.3.1"
     val circeCore = "0.13.0"
+    val commonsLogging = "1.2"
     val decline = "1.3.0"
     val fastparse = "2.3.1"
     val javalin = "3.13.3"
@@ -61,6 +62,7 @@ object Dependencies {
   val awsS3           = Def.setting("software.amazon.awssdk" % "s3" % V.awsS3)
   val betterFiles     = Def.setting("com.github.pathikrit" %% "better-files" % V.betterFiles)
   val catsCore        = Def.setting("org.typelevel" %%% "cats-core" % V.catsCore)
+  val commonsLogging  = Def.setting("commons-logging" % "commons-logging" % V.commonsLogging)
   val decline         = Def.setting("com.monovore" %%% "decline" % V.decline)
   val fastparse       = Def.setting("com.lihaoyi" %%% "fastparse" % V.fastparse)
   val javalin         = Def.setting("io.javalin" % "javalin" % V.javalin)

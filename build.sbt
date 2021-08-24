@@ -17,6 +17,7 @@ lazy val alam = project.in(file("."))
       awsLambdaCore.value,
       awsLambdaEvents.value,
       awsS3.value,
+      commonsLogging.value,
       scribe.value
     ),
     nativeImageVersion := "20.3.0",
