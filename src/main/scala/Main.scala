@@ -7,7 +7,6 @@ import rescala.extra.lattices.delta.Delta
 import rescala.extra.lattices.delta.crdt.reactive.AWSet
 import rescala.extra.lattices.delta.Codecs._
 import software.amazon.awssdk.core.sync.RequestBody
-import software.amazon.awssdk.http.SdkHttpClient
 import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
