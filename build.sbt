@@ -26,7 +26,7 @@ lazy val alam = project.in(file("."))
       "--no-fallback",
       "--no-server",
       "-H:EnableURLProtocols=http,https",
-      "-H:ReflectionConfigurationFiles=./reflection-config.json"
+      "-H:ReflectionConfigurationFiles=/tmpproj/reflection-config.json"
       // "--static",
     ),
   )
