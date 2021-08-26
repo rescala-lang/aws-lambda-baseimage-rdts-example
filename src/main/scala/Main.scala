@@ -7,7 +7,7 @@ import rescala.extra.lattices.delta.Delta
 import rescala.extra.lattices.delta.crdt.reactive.AWSet
 import rescala.extra.lattices.delta.Codecs._
 import software.amazon.awssdk.core.sync.RequestBody
-import software.amazon.awssdk.http.apache.ApacheHttpClient
+// import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.{GetObjectRequest, HeadObjectRequest, ListObjectsV2Request, PutObjectRequest}
@@ -34,9 +34,9 @@ object Main {
 
     val deltaStateKey = "deltaState"
 
-    val httpClient = ApacheHttpClient.builder().build()
+    //val httpClient = ApacheHttpClient.builder().build()
 
-    val s3 = S3Client.builder().region(Region.EU_CENTRAL_1).httpClient(httpClient).build()
+    val s3 = S3Client.builder().region(Region.EU_CENTRAL_1).build()
 
     implicit val intCodec: JsonValueCodec[Int] = JsonCodecMaker.make
 
