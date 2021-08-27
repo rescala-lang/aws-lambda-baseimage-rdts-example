@@ -26,7 +26,10 @@ lazy val alam = project.in(file("."))
       "--no-fallback",
       "--no-server",
       "-H:EnableURLProtocols=http,https",
-      "-H:ReflectionConfigurationResources=/tmpproj/src/main/resources/META-INF/native-image"
+      "-H:ReflectionConfigurationResources=/tmpproj/src/main/resources/META-INF/native-image/reflect-config.json",
+      "-H:ResourceConfigurationResources=/tmpproj/src/main/resources/META-INF/native-image/resource-config.json",
+      "-H:JNIConfigurationResources=/tmpproj/src/main/resources/META-INF/native-image/jni-config.json",
+      "-H:DynamicProxyConfigurationResources=/tmpproj/src/main/resources/META-INF/native-image/proxy-config.json"
       // "--static",
     ),
     // javaOptions += "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image",
