@@ -29,6 +29,8 @@ lazy val alam = project.in(file("."))
       "-H:ReflectionConfigurationFiles=/tmpproj/reflection-config.json"
       // "--static",
     ),
+    // javaOptions += "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image",
+    // fork := true
   )
 
 // fix some linting nonsene
