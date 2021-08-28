@@ -26,6 +26,8 @@ object Dependencies {
     val jsoup = "1.13.1"
     val jsr166y = "1.7.0"
     val kaleidoscope = "0.1.0"
+    val log4jApi = "2.14.1"
+    val log4jCore = "2.14.1"
     val magnolia = "0.15.0"
     val normalizecss = "8.0.1"
     val okHttp = "4.9.0"
@@ -72,6 +74,8 @@ object Dependencies {
   val jsoup           = Def.setting("org.jsoup" % "jsoup" % V.jsoup)
   val jsr166y         = Def.setting("org.codehaus.jsr166-mirror" % "jsr166y" % V.jsr166y)
   val kaleidoscope    = Def.setting("com.propensive" %%% "kaleidoscope" % V.kaleidoscope)
+  val log4jApi        = Def.setting("org.apache.logging.log4j" % "log4j-api" % V.log4jApi)
+  val log4jCore       = Def.setting("org.apache.logging.log4j" % "log4j-core" % V.log4jCore)
   val magnolia        = Def.setting("com.propensive" %%% "magnolia" % V.magnolia)
   val normalizecss    = Def.setting("org.webjars.npm" % "normalize.css" % V.normalizecss)
   val okHttp          = Def.setting("com.squareup.okhttp3" % "okhttp" % V.okHttp)
