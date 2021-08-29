@@ -22,6 +22,7 @@ lazy val alam = project.in(file("."))
     nativeImageVersion := "20.3.0",
     nativeImageOptions ++= Seq(
       // "--initialize-at-build-time",
+      "--trace-class-initialization=org.slf4j.LoggerFactory",
       "--no-fallback",
       "--no-server",
       "-H:EnableURLProtocols=http,https",
