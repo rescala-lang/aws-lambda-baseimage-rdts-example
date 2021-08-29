@@ -22,7 +22,7 @@ lazy val alam = project.in(file("."))
     nativeImageVersion := "20.3.0",
     nativeImageOptions ++= Seq(
       // "--initialize-at-build-time",
-      "-H:+TraceClassInitialization",
+      "-H:+PrintClassInitialization",
       "--no-fallback",
       "--no-server",
       "-H:EnableURLProtocols=http,https",
