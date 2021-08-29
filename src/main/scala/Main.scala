@@ -28,7 +28,7 @@ object Main {
 
     val vmID = Random.nextLong().toString
 
-    scribe.info("test")
+    // scribe.info("test")
 
     val bucketName = "de-tu-darmstadt-stg-crdt"
 
