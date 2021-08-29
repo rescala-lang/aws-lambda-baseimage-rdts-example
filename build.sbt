@@ -20,6 +20,10 @@ lazy val alam = project.in(file("."))
       commonsLogging.value,
       log4jApi.value,
       log4jCore.value,
+      avalonApi.value,
+      avalonImpl.value,
+      logkit.value,
+      slf4j.value,
       scribe.value
     ),
     nativeImageVersion := "20.3.0",

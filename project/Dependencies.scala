@@ -7,6 +7,7 @@ object Dependencies {
   // define versions, The variable name must be camel case by module name
   // format: off
   object Versions {
+    val avalon = "4.3.1"
     val akkaActors = "2.6.10"
     val akkaHttp = "10.2.2"
     val awsLambdaCore = "1.2.1"
@@ -26,8 +27,8 @@ object Dependencies {
     val jsoup = "1.13.1"
     val jsr166y = "1.7.0"
     val kaleidoscope = "0.1.0"
-    val log4jApi = "2.14.1"
-    val log4jCore = "2.14.1"
+    val log4j = "2.14.1"
+    val logkit = "2.2.1"
     val magnolia = "0.15.0"
     val normalizecss = "8.0.1"
     val okHttp = "4.9.0"
@@ -51,6 +52,7 @@ object Dependencies {
     val scalatest = "3.2.3"
     val scalatestpluscheck = "3.2.2.0"
     val scribe = "3.3.1"
+    val slf4j = "1.7.25"
     val sourcecode = "0.2.1"
     val tomlScala = "0.2.2"
     val upickle = "1.2.2"
@@ -59,6 +61,8 @@ object Dependencies {
 
   import Dependencies.{Versions => V}
 
+  val avalonApi       = Def.setting("org.apache.avalon.framework" % "avalon-framework-api" % V.avalon)
+  val avalonImpl      = Def.setting("org.apache.avalon.framework" % "avalon-framework-impl" % V.avalon)
   val awsLambdaCore   = Def.setting("com.amazonaws" % "aws-lambda-java-core" % V.awsLambdaCore)
   val awsLambdaEvents = Def.setting("com.amazonaws" % "aws-lambda-java-events" % V.awsLambdaEvents)
   val awsS3           = Def.setting("software.amazon.awssdk" % "s3" % V.awsS3)
@@ -74,8 +78,9 @@ object Dependencies {
   val jsoup           = Def.setting("org.jsoup" % "jsoup" % V.jsoup)
   val jsr166y         = Def.setting("org.codehaus.jsr166-mirror" % "jsr166y" % V.jsr166y)
   val kaleidoscope    = Def.setting("com.propensive" %%% "kaleidoscope" % V.kaleidoscope)
-  val log4jApi        = Def.setting("org.apache.logging.log4j" % "log4j-api" % V.log4jApi)
-  val log4jCore       = Def.setting("org.apache.logging.log4j" % "log4j-core" % V.log4jCore)
+  val log4jApi        = Def.setting("org.apache.logging.log4j" % "log4j-api" % V.log4j)
+  val log4jCore       = Def.setting("org.apache.logging.log4j" % "log4j-core" % V.log4j)
+  val logkit          = Def.setting("org.apache.avalon.logkit" % "avalon-logkit" % V.logkit % "provided")
   val magnolia        = Def.setting("com.propensive" %%% "magnolia" % V.magnolia)
   val normalizecss    = Def.setting("org.webjars.npm" % "normalize.css" % V.normalizecss)
   val okHttp          = Def.setting("com.squareup.okhttp3" % "okhttp" % V.okHttp)
@@ -96,6 +101,7 @@ object Dependencies {
   val scalaXml           = Def.setting("org.scala-lang.modules" %% "scala-xml" % V.scalaXml)
   val scribe             = Def.setting("com.outr" %%% "scribe" % V.scribe)
   val scribeSlf4j        = Def.setting("com.outr" %% "scribe-slf4j" % V.scribe)
+  val slf4j              = Def.setting("org.slf4j" % "slf4j-api" % V.slf4j)
   val sourcecode         = Def.setting("com.lihaoyi" %%% "sourcecode" % V.sourcecode)
   val tomlScala          = Def.setting("tech.sparse" %%% "toml-scala" % V.tomlScala)
   val upickle            = Def.setting("com.lihaoyi" %% "upickle" % V.upickle)
