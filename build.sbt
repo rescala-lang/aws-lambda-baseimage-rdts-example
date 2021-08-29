@@ -28,6 +28,7 @@ lazy val alam = project.in(file("."))
       "--no-fallback",
       "--no-server",
       "-H:EnableURLProtocols=http,https",
+      "--features=org.graalvm.home.HomeFinderFeature"
       // "--static",
     ),
     // javaOptions += "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image",
