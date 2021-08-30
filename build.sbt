@@ -16,14 +16,14 @@ lazy val alam = project.in(file("."))
       replication.value,
       awsLambdaCore.value,
       awsLambdaEvents.value,
-      awsS3.value,
+      // awsS3.value,
       scribe.value
     ),
     nativeImageVersion := "20.3.0",
     nativeImageOptions ++= Seq(
-      // "--initialize-at-build-time",
-      "--initialize-at-build-time=org.slf4j.LoggerFactory",
-      // "--no-fallback",
+      "--initialize-at-build-time",
+      // "--initialize-at-build-time=org.slf4j.LoggerFactory",
+      "--no-fallback",
       "--no-server",
       "-H:EnableURLProtocols=http,https",
       "--features=org.graalvm.home.HomeFinderFeature"
