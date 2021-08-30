@@ -3,21 +3,20 @@ package lambdatest
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import rescala.extra.lattices.delta.CContext.DietMapCContext
-import rescala.extra.lattices.delta.Delta
-import rescala.extra.lattices.delta.crdt.reactive.AWSet
 import rescala.extra.lattices.delta.Codecs._
+import rescala.extra.lattices.delta.Delta
+import rescala.extra.lattices.delta.crdt.reactive.RGA
 import software.amazon.awssdk.core.sync.RequestBody
-// import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.{GetObjectRequest, HeadObjectRequest, ListObjectsV2Request, PutObjectRequest}
+import software.amazon.awssdk.services.s3.model.{GetObjectRequest, ListObjectsV2Request, PutObjectRequest}
 
 import java.net.URI
 import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
 import java.net.http.{HttpClient, HttpRequest}
-import scala.util.Random
 import scala.jdk.CollectionConverters._
+import scala.util.Random
 
 
 object Main {
@@ -28,72 +27,109 @@ object Main {
 
     val vmID = Random.nextLong().toString
 
-    scribe.info("test")
-
     val bucketName = "de-tu-darmstadt-stg-crdt"
 
-    val deltaStateKey = "deltaState"
-
-    // val httpClient = ApacheHttpClient.builder().build()
+    var counter = 0
 
     val s3 = S3Client.builder().region(Region.EU_CENTRAL_1).build()
 
-    implicit val intCodec: JsonValueCodec[Int] = JsonCodecMaker.make
+    implicit val todoTaskCodec: JsonValueCodec[TodoTask] = JsonCodecMaker.make
 
-    implicit val InputCodec: JsonValueCodec[List[Int]] = JsonCodecMaker.make
+    implicit val taskListCodec: JsonValueCodec[List[TodoTask]] = JsonCodecMaker.make
 
-    val set = {
+    implicit val InputCodec: JsonValueCodec[InputEvent] = JsonCodecMaker.make
+
+    var todoList = {
       val listResponse = s3.listObjectsV2(ListObjectsV2Request.builder().bucket(bucketName).build())
 
       listResponse.contents().asScala.toList.map { obj =>
         val resp = s3.getObject(GetObjectRequest.builder().bucket(bucketName).key(obj.key()).build())
 
-        readFromArray[AWSet.State[Int, DietMapCContext]](resp.readAllBytes())
-      }.foldLeft(AWSet[Int, DietMapCContext](vmID)) { (s, delta) =>
+        readFromArray[RGA.State[TodoTask, DietMapCContext]](resp.readAllBytes())
+      }.foldLeft(RGA[TodoTask, DietMapCContext](vmID)) { (s, delta) =>
         s.applyDelta(Delta("remote", delta))
       }.resetDeltaBuffer()
     }
 
-    println(f"Set state from combined deltas: ${set.elements}")
+    def putDelta(deltaState: RGA.State[TodoTask, DietMapCContext]): Unit = {
+      val key = s"$vmID:$counter"
+      counter += 1
+
+      s3.putObject(
+        PutObjectRequest.builder().bucket(bucketName).key(key).build(),
+        RequestBody.fromBytes(writeToArray(deltaState))
+      )
+    }
 
     while (true) {
       println("waiting for request")
       val req = HttpRequest.newBuilder().uri(
-        URI.create(s"http://${apiurl}/2018-06-01/runtime/invocation/next")
+        URI.create(s"http://$apiurl/2018-06-01/runtime/invocation/next")
       ).build()
 
       val res   = client.send(req, BodyHandlers.ofString())
       val reqId = res.headers().firstValue("Lambda-Runtime-Aws-Request-Id").get()
 
-      println(s"got request ${res.body()} \nheaders: ${res.headers()}")
+      val response = readFromString[InputEvent](res.body()) match {
+        case GetListEvent =>
+          s"""{"statusCode": 200, "vmID": "$vmID", "body": "${writeToString[List[TodoTask]](todoList.toList)}"}"""
 
-      val addList = readFromString[List[Int]](res.body())
+        case AddTaskEvent(desc) =>
+          val task = TodoTask(desc)
 
-      val mutatedSet = set.addAll(addList)
+          val mutatedList = todoList.append(task)
+          todoList = mutatedList.resetDeltaBuffer()
 
-      val deltaState = mutatedSet.deltaBuffer.head.deltaState
+          putDelta(mutatedList.deltaBuffer.head.deltaState)
 
-      println(s"mutated set: ${mutatedSet.elements}")
+          s"""{"statusCode": 200, "vmID": "$vmID", "body": "${task.id}"}"""
 
-      s3.putObject(
-        PutObjectRequest.builder().bucket(bucketName).key(deltaStateKey).build(),
-        RequestBody.fromBytes(writeToArray(deltaState))
-      )
+        case ToggleTaskEvent(id) =>
+          todoList.toList.find(_.id == id) match {
+            case None =>
+              s"""{"statusCode": 404, "vmID": "$vmID"}"""
+            case Some(TodoTask(desc, done, _)) =>
+              val mutatedList = todoList.updateBy(_.id == id, TodoTask(desc, done = !done))
+              todoList = mutatedList.resetDeltaBuffer()
 
-      s3.waiter().waitUntilObjectExists(
-        HeadObjectRequest.builder().bucket(bucketName).key(deltaStateKey).build()
-      )
+              putDelta(mutatedList.deltaBuffer.head.deltaState)
 
-      val getResponse = s3.getObject(GetObjectRequest.builder().bucket(bucketName).key(deltaStateKey).build())
+              s"""{"statusCode": 200, "vmID": "$vmID"}"""
+          }
 
-      val receivedState = readFromArray[AWSet.State[Int, DietMapCContext]](getResponse.readAllBytes())
+        case RemoveTaskEvent(id) =>
+          val mutatedList = todoList.deleteBy(_.id == id)
 
-      println("Received delta state")
-      println(receivedState)
+          mutatedList.deltaBuffer.headOption match {
+            case None =>
+              s"""{"statusCode": 404, "vmID": "$vmID"}"""
+            case Some(Delta(_, deltaState)) =>
+              todoList = mutatedList.resetDeltaBuffer()
+
+              putDelta(deltaState)
+
+              s"""{"statusCode": 200, "vmID": "$vmID"}"""
+          }
+
+        case RemoveDoneEvent =>
+          val toRemove = todoList.toList.filter(_.done)
+
+          val mutatedList = todoList.deleteBy(toRemove.contains)
+
+          if (mutatedList.deltaBuffer.nonEmpty) {
+            putDelta(mutatedList.deltaBuffer.head.deltaState)
+
+            todoList = mutatedList.resetDeltaBuffer()
+          }
+
+          s"""{"statusCode": 200, "vmID": "$vmID"}"""
+      }
+
+
 
       val req2 = HttpRequest.newBuilder().uri(
-        URI.create(s"http://${apiurl}/2018-06-01/runtime/invocation/$reqId/response")
-      ).method("POST", BodyPublishers.ofString(s"""{"statusCode": 200, "vmID": "$vmID", "body": "$vmID"}""")).build()
+        URI.create(s"http://$apiurl/2018-06-01/runtime/invocation/$reqId/response")
+      ).method("POST", BodyPublishers.ofString(response)).build()
 
       client.send(req2, BodyHandlers.discarding())
     }
