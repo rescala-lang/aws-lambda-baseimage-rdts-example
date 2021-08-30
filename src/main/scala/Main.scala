@@ -89,7 +89,20 @@ object Main {
             case None =>
               s"""{"statusCode": 404, "vmID": "$vmID"}"""
             case Some(TodoTask(desc, done, _)) =>
-              val mutatedList = todoList.updateBy(_.id == id, TodoTask(desc, done = !done))
+              val mutatedList = todoList.updateBy(_.id == id, TodoTask(desc, done = !done, id))
+              todoList = mutatedList.resetDeltaBuffer()
+
+              putDelta(mutatedList.deltaBuffer.head.deltaState)
+
+              s"""{"statusCode": 200, "vmID": "$vmID"}"""
+          }
+
+        case EditTaskEvent(id, desc) =>
+          todoList.toList.find(_.id == id) match {
+            case None =>
+              s"""{"statusCode": 404, "vmID": "$vmID"}"""
+            case Some(TodoTask(_, done, _)) =>
+              val mutatedList = todoList.updateBy(_.id == id, TodoTask(desc, done, id))
               todoList = mutatedList.resetDeltaBuffer()
 
               putDelta(mutatedList.deltaBuffer.head.deltaState)

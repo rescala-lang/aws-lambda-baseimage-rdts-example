@@ -8,6 +8,8 @@ case class AddTaskEvent(desc: String) extends InputEvent
 
 case class ToggleTaskEvent(id: String) extends InputEvent
 
+case class EditTaskEvent(id: String, desc: String) extends InputEvent
+
 case class RemoveTaskEvent(id: String) extends InputEvent
 
 case object RemoveDoneEvent extends InputEvent
