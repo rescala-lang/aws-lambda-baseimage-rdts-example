@@ -16,7 +16,7 @@ lazy val alam = project.in(file("."))
       replication.value,
       awsLambdaCore.value,
       awsLambdaEvents.value,
-      // awsS3.value,
+      awsS3.value,
       scribe.value
     ),
     nativeImageVersion := "20.3.0",
