@@ -99,6 +99,7 @@ object Main {
             println(s"todoList before add: ${todoList.toList}")
             val mutatedList = todoList.prepend(task)
             println(s"mutatedList: ${mutatedList.toList}")
+            println(s"todoList should be the same: ${todoList.toList}")
             println(s"deltaBuffer: ${mutatedList.deltaBuffer}")
             todoList = mutatedList.resetDeltaBuffer()
             println(s"deltaBuffer after reset: ${mutatedList.deltaBuffer}")
