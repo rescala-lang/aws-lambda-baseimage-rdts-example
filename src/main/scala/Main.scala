@@ -75,6 +75,8 @@ object Main {
       val reqId = res.headers().firstValue("Lambda-Runtime-Aws-Request-Id").get()
 
       if (res.body().startsWith("{\n\"Records\":")) {
+        println("Received S3 Trigger")
+
         val pattern = ".*key\": \"(?<key> [^\"]*)\".*".r
 
         val deltaStateKey = pattern.findFirstMatchIn(res.body()).get.group("key")
@@ -83,6 +85,8 @@ object Main {
           val deltaState = getState(deltaStateKey)
 
           todoList = todoList.applyDelta(Delta("remote", deltaState)).resetDeltaBuffer()
+
+          println(s"Applied delta from S3, new state: ${todoList.toList}")
         }
       } else {
         val response = readFromString[InputEvent](res.body()) match {
@@ -92,8 +96,12 @@ object Main {
           case AddTaskEvent(desc) =>
             val task = TodoTask(desc)
 
-            val mutatedList = todoList.append(task)
+            println(s"todoList before add: ${todoList.toList}")
+            val mutatedList = todoList.prepend(task)
+            println(s"mutatedList: ${mutatedList.toList}")
+            println(s"deltaBuffer: ${mutatedList.deltaBuffer}")
             todoList = mutatedList.resetDeltaBuffer()
+            println(s"deltaBuffer after reset: ${mutatedList.deltaBuffer}")
 
             putDelta(mutatedList.deltaBuffer.head.deltaState)
 
