@@ -70,95 +70,82 @@ object Main {
         URI.create(s"http://$apiurl/2018-06-01/runtime/invocation/next")
       ).build()
 
-      val res   = client.send(req, BodyHandlers.ofString())
+      val res = client.send(req, BodyHandlers.ofString())
       val reqId = res.headers().firstValue("Lambda-Runtime-Aws-Request-Id").get()
 
-      if (res.body().startsWith("{\n\"Records\":")) {
-        val pattern = ".*key\": \"(?<key> [^\"]*)\".*".r
+      val response = readFromString[InputEvent](res.body()) match {
+        case GetListEvent =>
+          s"""{"statusCode": 200, "vmID": "$vmID", "body": "${writeToString[List[TodoTask]](todoList.toList)}"}"""
 
-        val deltaStateKey = pattern.findFirstMatchIn(res.body()).get.group("key")
+        case AddTaskEvent(desc) =>
+          val task = TodoTask(desc)
 
-        if (!deltaStateKey.startsWith(vmID)) {
-          val deltaState = getState(deltaStateKey)
+          val mutatedList = todoList.prepend(task)
+          todoList = mutatedList.resetDeltaBuffer()
 
-          todoList = todoList.applyDelta(Delta("remote", deltaState)).resetDeltaBuffer()
-        }
-      } else {
-        val response = readFromString[InputEvent](res.body()) match {
-          case GetListEvent =>
-            s"""{"statusCode": 200, "vmID": "$vmID", "body": "${writeToString[List[TodoTask]](todoList.toList)}"}"""
+          putDelta(mutatedList.deltaBuffer.head.deltaState)
 
-          case AddTaskEvent(desc) =>
-            val task = TodoTask(desc)
+          s"""{"statusCode": 200, "vmID": "$vmID", "body": "${task.id}"}"""
 
-            val mutatedList = todoList.prepend(task)
-            todoList = mutatedList.resetDeltaBuffer()
+        case ToggleTaskEvent(id) =>
+          todoList.toList.find(_.id == id) match {
+            case None =>
+              s"""{"statusCode": 404, "vmID": "$vmID"}"""
+            case Some(TodoTask(desc, done, _)) =>
+              val mutatedList = todoList.updateBy(_.id == id, TodoTask(desc, done = !done, id))
+              todoList = mutatedList.resetDeltaBuffer()
 
-            putDelta(mutatedList.deltaBuffer.head.deltaState)
-
-            s"""{"statusCode": 200, "vmID": "$vmID", "body": "${task.id}"}"""
-
-          case ToggleTaskEvent(id) =>
-            todoList.toList.find(_.id == id) match {
-              case None =>
-                s"""{"statusCode": 404, "vmID": "$vmID"}"""
-              case Some(TodoTask(desc, done, _)) =>
-                val mutatedList = todoList.updateBy(_.id == id, TodoTask(desc, done = !done, id))
-                todoList = mutatedList.resetDeltaBuffer()
-
-                putDelta(mutatedList.deltaBuffer.head.deltaState)
-
-                s"""{"statusCode": 200, "vmID": "$vmID"}"""
-            }
-
-          case EditTaskEvent(id, desc) =>
-            todoList.toList.find(_.id == id) match {
-              case None =>
-                s"""{"statusCode": 404, "vmID": "$vmID"}"""
-              case Some(TodoTask(_, done, _)) =>
-                val mutatedList = todoList.updateBy(_.id == id, TodoTask(desc, done, id))
-                todoList = mutatedList.resetDeltaBuffer()
-
-                putDelta(mutatedList.deltaBuffer.head.deltaState)
-
-                s"""{"statusCode": 200, "vmID": "$vmID"}"""
-            }
-
-          case RemoveTaskEvent(id) =>
-            val mutatedList = todoList.deleteBy(_.id == id)
-
-            mutatedList.deltaBuffer.headOption match {
-              case None =>
-                s"""{"statusCode": 404, "vmID": "$vmID"}"""
-              case Some(Delta(_, deltaState)) =>
-                todoList = mutatedList.resetDeltaBuffer()
-
-                putDelta(deltaState)
-
-                s"""{"statusCode": 200, "vmID": "$vmID"}"""
-            }
-
-          case RemoveDoneEvent =>
-            val toRemove = todoList.toList.filter(_.done)
-
-            val mutatedList = todoList.deleteBy(toRemove.contains)
-
-            if (mutatedList.deltaBuffer.nonEmpty) {
               putDelta(mutatedList.deltaBuffer.head.deltaState)
 
+              s"""{"statusCode": 200, "vmID": "$vmID"}"""
+          }
+
+        case EditTaskEvent(id, desc) =>
+          todoList.toList.find(_.id == id) match {
+            case None =>
+              s"""{"statusCode": 404, "vmID": "$vmID"}"""
+            case Some(TodoTask(_, done, _)) =>
+              val mutatedList = todoList.updateBy(_.id == id, TodoTask(desc, done, id))
               todoList = mutatedList.resetDeltaBuffer()
-            }
 
-            s"""{"statusCode": 200, "vmID": "$vmID"}"""
-        }
+              putDelta(mutatedList.deltaBuffer.head.deltaState)
 
+              s"""{"statusCode": 200, "vmID": "$vmID"}"""
+          }
 
-        val req2 = HttpRequest.newBuilder().uri(
-          URI.create(s"http://$apiurl/2018-06-01/runtime/invocation/$reqId/response")
-        ).method("POST", BodyPublishers.ofString(response)).build()
+        case RemoveTaskEvent(id) =>
+          val mutatedList = todoList.deleteBy(_.id == id)
 
-        client.send(req2, BodyHandlers.discarding())
+          mutatedList.deltaBuffer.headOption match {
+            case None =>
+              s"""{"statusCode": 404, "vmID": "$vmID"}"""
+            case Some(Delta(_, deltaState)) =>
+              todoList = mutatedList.resetDeltaBuffer()
+
+              putDelta(deltaState)
+
+              s"""{"statusCode": 200, "vmID": "$vmID"}"""
+          }
+
+        case RemoveDoneEvent =>
+          val toRemove = todoList.toList.filter(_.done)
+
+          val mutatedList = todoList.deleteBy(toRemove.contains)
+
+          if (mutatedList.deltaBuffer.nonEmpty) {
+            putDelta(mutatedList.deltaBuffer.head.deltaState)
+
+            todoList = mutatedList.resetDeltaBuffer()
+          }
+
+          s"""{"statusCode": 200, "vmID": "$vmID"}"""
       }
+
+      val req2 = HttpRequest.newBuilder().uri(
+        URI.create(s"http://$apiurl/2018-06-01/runtime/invocation/$reqId/response")
+      ).method("POST", BodyPublishers.ofString(response)).build()
+
+      client.send(req2, BodyHandlers.discarding())
     }
   }
 
