@@ -102,6 +102,7 @@ object Main {
             println(s"deltaBuffer: ${mutatedList.deltaBuffer}")
             todoList = mutatedList.resetDeltaBuffer()
             println(s"deltaBuffer after reset: ${mutatedList.deltaBuffer}")
+            println(s"todoList after add: ${todoList.toList}")
 
             putDelta(mutatedList.deltaBuffer.head.deltaState)
 
