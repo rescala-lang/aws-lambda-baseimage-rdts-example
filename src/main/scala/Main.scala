@@ -39,16 +39,6 @@ object Main {
 
     implicit val InputCodec: JsonValueCodec[InputEvent] = JsonCodecMaker.make
 
-    var todoList = {
-      val listResponse = s3.listObjectsV2(ListObjectsV2Request.builder().bucket(bucketName).build())
-
-      listResponse.contents().asScala.toList.map { obj =>
-        getState(obj.key())
-      }.foldLeft(RGA[TodoTask, DietMapCContext](vmID)) { (s, delta) =>
-        s.applyDelta(Delta("remote", delta))
-      }.resetDeltaBuffer()
-    }
-
     def putDelta(deltaState: RGA.State[TodoTask, DietMapCContext]): Unit = {
       val key = s"$vmID:$counter"
       counter += 1
@@ -63,6 +53,16 @@ object Main {
       val resp = s3.getObject(GetObjectRequest.builder().bucket(bucketName).key(key).build())
 
       readFromArray[RGA.State[TodoTask, DietMapCContext]](resp.readAllBytes())
+    }
+
+    var todoList = {
+      val listResponse = s3.listObjectsV2(ListObjectsV2Request.builder().bucket(bucketName).build())
+
+      listResponse.contents().asScala.toList.map { obj =>
+        getState(obj.key())
+      }.foldLeft(RGA[TodoTask, DietMapCContext](vmID)) { (s, delta) =>
+        s.applyDelta(Delta("remote", delta))
+      }.resetDeltaBuffer()
     }
 
     while (true) {
