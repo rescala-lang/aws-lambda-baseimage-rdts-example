@@ -40,10 +40,8 @@ object Main {
     implicit val InputCodec: JsonValueCodec[InputEvent] = JsonCodecMaker.make
 
     def putDelta(deltaState: RGA.State[TodoTask, DietMapCContext]): Unit = {
-      println(s"old counter: $counter")
       val key = s"$vmID:$counter"
       counter += 1
-      println(s"new counter: $counter")
 
       s3.putObject(
         PutObjectRequest.builder().bucket(bucketName).key(key).build(),
@@ -60,7 +58,6 @@ object Main {
     var todoList = {
       val listResponse = s3.listObjectsV2(ListObjectsV2Request.builder().bucket(bucketName).build())
 
-      println("Initializing todoList")
       listResponse.contents().asScala.toList.map { obj =>
         getState(obj.key())
       }.foldLeft(RGA[TodoTask, DietMapCContext](vmID)) { (s, delta) =>
@@ -94,14 +91,8 @@ object Main {
           case AddTaskEvent(desc) =>
             val task = TodoTask(desc)
 
-            println(s"todoList before add: ${todoList.toList}")
             val mutatedList = todoList.prepend(task)
-            println(s"mutatedList: ${mutatedList.toList}")
-            println(s"todoList should be the same: ${todoList.toList}")
-            println(s"deltaBuffer: ${mutatedList.deltaBuffer}")
             todoList = mutatedList.resetDeltaBuffer()
-            println(s"deltaBuffer after reset: ${mutatedList.deltaBuffer}")
-            println(s"todoList after add: ${todoList.toList}")
 
             putDelta(mutatedList.deltaBuffer.head.deltaState)
 
