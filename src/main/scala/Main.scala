@@ -40,8 +40,10 @@ object Main {
     implicit val InputCodec: JsonValueCodec[InputEvent] = JsonCodecMaker.make
 
     def putDelta(deltaState: RGA.State[TodoTask, DietMapCContext]): Unit = {
+      println(s"old counter: $counter")
       val key = s"$vmID:$counter"
       counter += 1
+      println(s"new counter: $counter")
 
       s3.putObject(
         PutObjectRequest.builder().bucket(bucketName).key(key).build(),
@@ -58,6 +60,7 @@ object Main {
     var todoList = {
       val listResponse = s3.listObjectsV2(ListObjectsV2Request.builder().bucket(bucketName).build())
 
+      println("Initializing todoList")
       listResponse.contents().asScala.toList.map { obj =>
         getState(obj.key())
       }.foldLeft(RGA[TodoTask, DietMapCContext](vmID)) { (s, delta) =>
@@ -66,7 +69,6 @@ object Main {
     }
 
     while (true) {
-      println("waiting for request")
       val req = HttpRequest.newBuilder().uri(
         URI.create(s"http://$apiurl/2018-06-01/runtime/invocation/next")
       ).build()
@@ -75,8 +77,6 @@ object Main {
       val reqId = res.headers().firstValue("Lambda-Runtime-Aws-Request-Id").get()
 
       if (res.body().startsWith("{\n\"Records\":")) {
-        println("Received S3 Trigger")
-
         val pattern = ".*key\": \"(?<key> [^\"]*)\".*".r
 
         val deltaStateKey = pattern.findFirstMatchIn(res.body()).get.group("key")
@@ -85,8 +85,6 @@ object Main {
           val deltaState = getState(deltaStateKey)
 
           todoList = todoList.applyDelta(Delta("remote", deltaState)).resetDeltaBuffer()
-
-          println(s"Applied delta from S3, new state: ${todoList.toList}")
         }
       } else {
         val response = readFromString[InputEvent](res.body()) match {
