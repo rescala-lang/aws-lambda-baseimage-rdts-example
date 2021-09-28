@@ -15,16 +15,16 @@ In Amazon S3, create a bucket and replace the bucketName value in src/main/scala
 
 note, the following commands are fish shell, i.e., the (pwd) probably needs to replaced by something bash compatible like $(pwd)
 
-build docker image
+build docker image: <br>
 sudo docker build -t awscompile .
 
-use to create native image
+use to create native image: <br>
 sudo docker run -v (pwd):/proj awscompile
 
-when uploading your code for the first time, run
+when uploading your code for the first time, run: <br>
 ./create.sh
 
-afterwards, you can upload changes after building by running
+afterwards, you can upload changes after building by running: <br>
 ./update.sh
 
 ## API
